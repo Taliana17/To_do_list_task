@@ -32,7 +32,7 @@ export default function TaskCard({ task, canDelete, onToggle, onDelete, onSave }
             />
           </form>
         ) : (
-          <h3 className={text-lg font-semibold ${task.completed ? "line-through text-gray-500" : ""}}>
+          <h3 className={`text-lg font-semibold ${task.completed ? "line-through text-gray-500" : ""}`}>
             {task.title}
           </h3>
         )}
