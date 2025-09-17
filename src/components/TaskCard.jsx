@@ -1,6 +1,6 @@
 import { useState } from "react";
-import TaskMeta from "./TaskActions";
-import TaskActions from "./TaskEdit";
+import TaskMeta from "./TaskEdit";
+import TaskActions from "./TaskActions";
 
 export default function TaskCard({ task, canDelete, onToggle, onDelete, onSave }) {
   const [editing, setEditing] = useState(false);
