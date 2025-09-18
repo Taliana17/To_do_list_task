@@ -9,9 +9,17 @@ import { Palette, Sparkles } from "lucide-react";
 const BASE = "http://localhost:3001";
 const PAGE_SIZE = 9;
 
-// Colores pastel del fondo
 const PURPLE = "#E9D5FF";
 const PINK = "#FBCFE8";
+
+// ---- helper: normaliza texto para buscar (quita acentos, pasa a minúsculas) ----
+function norm(s = "") {
+  return String(s)
+    .normalize("NFD")
+    .replace(/\p{Diacritic}/gu, "")
+    .toLowerCase()
+    .trim();
+}
 
 export default function App() {
   // ---------- Usuario ----------
@@ -39,41 +47,46 @@ export default function App() {
   const [total, setTotal] = useState(0);
   const totalPages = useMemo(() => Math.max(1, Math.ceil(total / PAGE_SIZE)), [total]);
 
-  // Permisos (puedes dejar canDelete=true si no usas esto)
   const userId = user?.id ?? -1;
   const mine = useMemo(
     () => new Set(tasks.filter((t) => t.authorId === userId).map((t) => t.id)),
     [tasks, userId]
   );
 
-  // ====== Cargar tareas con paginación + búsqueda (solo frontend) ======
+  // ====== Cargar tareas con paginación + búsqueda (TODO en cliente) ======
   async function load() {
     setLoading(true);
     try {
-      // 1) Trae TODO (si hay q, se filtra en el server; si no, todo)
-      const params = new URLSearchParams();
-      if (q.trim()) params.set("q", q.trim());
-
-      // SIN _page ni _limit — traemos la lista completa
-      const res = await fetch(`${BASE}/tasks?${params.toString()}`);
+      // 1) Trae TODO sin paginación ni q (una sola llamada)
+      const res = await fetch(`${BASE}/tasks`);
       if (!res.ok) throw new Error("fetch tasks");
       let all = await res.json();
+      all = Array.isArray(all) ? all : [];
 
-      // 2) Ordena por updatedAt desc (por si el backend no lo hace)
-      all = (Array.isArray(all) ? all : []).sort((a, b) => {
+      // 2) Ordenar por updatedAt desc para que la vista sea estable
+      all.sort((a, b) => {
         const da = new Date(a.updatedAt || 0).getTime();
         const db = new Date(b.updatedAt || 0).getTime();
         return db - da;
       });
 
-      // 3) Total para calcular páginas
-      const totalCount = all.length;
-      setTotal(totalCount);
+      // 3) Filtro en cliente (title, authorName)
+      const nq = norm(q);
+      const filtered = nq
+        ? all.filter((t) => {
+            const hay =
+              norm(t.title).includes(nq) ||
+              norm(t.authorName).includes(nq);
+            return hay;
+          })
+        : all;
 
-      // 4) Slice de la página actual (9 por página)
+      // 4) Total y slice de la página actual (9 por página)
+      const totalCount = filtered.length;
+      setTotal(totalCount);
       const start = (page - 1) * PAGE_SIZE;
       const end = start + PAGE_SIZE;
-      setTasks(all.slice(start, end));
+      setTasks(filtered.slice(start, end));
     } catch (e) {
       console.error(e);
       toast.error("No se pudieron cargar las tareas");
@@ -132,8 +145,6 @@ export default function App() {
       });
       setTitle("");
       toast.success("Tarea creada ✨");
-      // Nota: si hay filtro q, puede que no la veas si no coincide
-      if (q.trim()) toast.info("Tienes un filtro activo. Borra el buscador para ver todas.");
       if (page !== 1) setPage(1); else load();
     } catch {
       toast.error("No se pudo crear la tarea");
@@ -204,7 +215,6 @@ export default function App() {
           </div>
 
           <div className="flex items-center gap-3">
-            {/* Toggle de fondo */}
             <button
               onClick={() => setTheme((t) => (t === "purple" ? "pink" : "purple"))}
               className={`relative w-14 h-8 rounded-full flex items-center transition
@@ -276,13 +286,12 @@ export default function App() {
               ))}
             </div>
 
-            {/* Paginación — SIEMPRE visible (muestra 1, 2, 3 …) */}
+            {/* Paginación */}
             <Pagination page={page} totalPages={totalPages} onChange={setPage} />
           </>
         )}
       </div>
 
-      {/* Toasts */}
       <ToastContainer position="top-right" theme="light" />
     </div>
   );
@@ -298,9 +307,6 @@ function Panel({ children }) {
 
 /* ---------- Paginación ---------- */
 function Pagination({ page, totalPages, onChange }) {
-  // Si prefieres ocultarla cuando solo hay 1 página, descomenta:
-  // if (totalPages <= 1) return null;
-
   const pages = getPageItems(page, totalPages);
 
   return (
