@@ -13,6 +13,7 @@ export default function TaskActions({
   return (
     <div className="mt-1 flex flex-wrap items-center gap-2">
       <button
+        type="button"
         onClick={() => onToggle(task)}
         className={`inline-flex items-center gap-2 rounded-xl px-3 py-1.5 text-sm font-medium shadow-sm transition
           ${task.completed
@@ -26,6 +27,7 @@ export default function TaskActions({
 
       {!editing ? (
         <button
+          type="button"
           onClick={() => setEditing(true)}
           className="inline-flex items-center gap-2 rounded-xl px-3 py-1.5 text-sm font-medium shadow-sm bg-purple-200 hover:bg-purple-300 text-purple-900 transition"
           title="Editar"
@@ -35,6 +37,7 @@ export default function TaskActions({
       ) : (
         <>
           <button
+            type="button"
             onClick={onSubmitEdit}
             className="rounded-xl px-3 py-1.5 text-sm font-medium shadow-sm bg-green-200 hover:bg-green-300 text-green-900 transition"
             title="Guardar cambios"
@@ -42,6 +45,7 @@ export default function TaskActions({
             Guardar
           </button>
           <button
+            type="button"
             onClick={onCancelEdit}
             className="rounded-xl px-3 py-1.5 text-sm font-medium shadow-sm bg-gray-200 hover:bg-gray-300 text-gray-900 transition"
             title="Cancelar edición"
@@ -53,6 +57,7 @@ export default function TaskActions({
 
       {canDelete && (
         <button
+          type="button"
           onClick={() => onDelete(task.id)}
           className="ml-auto inline-flex items-center gap-2 rounded-xl px-3 py-1.5 text-sm font-medium shadow-sm bg-pink-200 hover:bg-pink-300 text-pink-900 transition"
           title="Eliminar"
