@@ -1,23 +1,23 @@
+// src/App.jsx
 import { useEffect, useMemo, useState } from "react";
 import Login from "./auth/Login";
 import TaskCard from "./components/TaskCard";
-import { listTasks, createTask, patchTask, deleteTask } from "./auth/api";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { Palette, Sparkles } from "lucide-react";
 
-// Colores pastel
+const BASE = "http://localhost:3001";
+const PAGE_SIZE = 9;
+
+// Colores pastel del fondo
 const PURPLE = "#E9D5FF";
 const PINK = "#FBCFE8";
 
 export default function App() {
   // ---------- Usuario ----------
   const [user, setUser] = useState(() => {
-    try {
-      return JSON.parse(localStorage.getItem("user") || "null");
-    } catch {
-      return null;
-    }
+    try { return JSON.parse(localStorage.getItem("user") || "null"); }
+    catch { return null; }
   });
 
   // ---------- Fondo con toggle ----------
@@ -28,36 +28,73 @@ export default function App() {
     localStorage.setItem("bgTheme", theme);
   }, [theme]);
 
-  // ---------- Tareas ----------
+  // ---------- Tareas / búsqueda / paginación ----------
   const [tasks, setTasks] = useState([]);
   const [title, setTitle] = useState("");
   const [q, setQ] = useState("");
   const [loading, setLoading] = useState(false);
   const [booting, setBooting] = useState(false);
 
-  const userId = user?.id ?? -1;
+  const [page, setPage] = useState(1);
+  const [total, setTotal] = useState(0);
+  const totalPages = useMemo(() => Math.max(1, Math.ceil(total / PAGE_SIZE)), [total]);
 
+  // Permisos (puedes dejar canDelete=true si no usas esto)
+  const userId = user?.id ?? -1;
   const mine = useMemo(
     () => new Set(tasks.filter((t) => t.authorId === userId).map((t) => t.id)),
     [tasks, userId]
   );
 
+  // ====== Cargar tareas con paginación + búsqueda (solo frontend) ======
   async function load() {
+    setLoading(true);
     try {
-      setLoading(true);
-      const params = q ? { q } : { _sort: "updatedAt", _order: "desc" };
-      const data = await listTasks(params);
-      setTasks(data);
-    } catch {
+      // 1) Trae TODO (si hay q, se filtra en el server; si no, todo)
+      const params = new URLSearchParams();
+      if (q.trim()) params.set("q", q.trim());
+
+      // SIN _page ni _limit — traemos la lista completa
+      const res = await fetch(`${BASE}/tasks?${params.toString()}`);
+      if (!res.ok) throw new Error("fetch tasks");
+      let all = await res.json();
+
+      // 2) Ordena por updatedAt desc (por si el backend no lo hace)
+      all = (Array.isArray(all) ? all : []).sort((a, b) => {
+        const da = new Date(a.updatedAt || 0).getTime();
+        const db = new Date(b.updatedAt || 0).getTime();
+        return db - da;
+      });
+
+      // 3) Total para calcular páginas
+      const totalCount = all.length;
+      setTotal(totalCount);
+
+      // 4) Slice de la página actual (9 por página)
+      const start = (page - 1) * PAGE_SIZE;
+      const end = start + PAGE_SIZE;
+      setTasks(all.slice(start, end));
+    } catch (e) {
+      console.error(e);
       toast.error("No se pudieron cargar las tareas");
     } finally {
       setLoading(false);
     }
   }
 
+  // Cargar al cambiar página o cuando hay usuario
+  useEffect(() => { if (user) load(); /* eslint-disable-next-line */ }, [page, user]);
+
+  // Cargar al cambiar búsqueda (debounce) y volver a página 1
   useEffect(() => {
-    if (user) load();
-  }, [user, q]);
+    if (!user) return;
+    const id = setTimeout(() => {
+      if (page !== 1) setPage(1);
+      else load();
+    }, 250);
+    return () => clearTimeout(id);
+    // eslint-disable-next-line
+  }, [q, user]);
 
   // ---------- Login ----------
   if (!user) {
@@ -67,11 +104,7 @@ export default function App() {
           onSuccess={async (u) => {
             setBooting(true);
             setUser(u);
-            try {
-              await load();
-            } finally {
-              setBooting(false);
-            }
+            try { await load(); } finally { setBooting(false); }
           }}
         />
         <ToastContainer position="top-right" theme="light" />
@@ -85,17 +118,23 @@ export default function App() {
     const t = title.trim();
     if (!t) return;
     try {
-      await createTask({
-        title: t,
-        completed: false,
-        authorId: user.id,
-        authorName: user.name,
-        editedBy: null,
-        updatedAt: new Date().toISOString(),
+      await fetch(`${BASE}/tasks`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title: t,
+          completed: false,
+          authorId: user.id,
+          authorName: user.name,
+          editedBy: null,
+          updatedAt: new Date().toISOString(),
+        }),
       });
       setTitle("");
       toast.success("Tarea creada ✨");
-      load();
+      // Nota: si hay filtro q, puede que no la veas si no coincide
+      if (q.trim()) toast.info("Tienes un filtro activo. Borra el buscador para ver todas.");
+      if (page !== 1) setPage(1); else load();
     } catch {
       toast.error("No se pudo crear la tarea");
     }
@@ -103,10 +142,14 @@ export default function App() {
 
   async function toggleTask(task) {
     try {
-      await patchTask(task.id, {
-        completed: !task.completed,
-        editedBy: user.name,
-        updatedAt: new Date().toISOString(),
+      await fetch(`${BASE}/tasks/${task.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          completed: !task.completed,
+          editedBy: user.name,
+          updatedAt: new Date().toISOString(),
+        }),
       });
       toast.success(task.completed ? "Tarea marcada pendiente ⏳" : "Tarea completada ✅");
       load();
@@ -117,10 +160,14 @@ export default function App() {
 
   async function saveTitle(id, newTitle) {
     try {
-      await patchTask(id, {
-        title: newTitle,
-        editedBy: user.name,
-        updatedAt: new Date().toISOString(),
+      await fetch(`${BASE}/tasks/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title: newTitle,
+          editedBy: user.name,
+          updatedAt: new Date().toISOString(),
+        }),
       });
       toast.info("Tarea editada ✏️");
       load();
@@ -131,9 +178,10 @@ export default function App() {
 
   async function removeTask(id) {
     try {
-      await deleteTask(id);
+      await fetch(`${BASE}/tasks/${id}`, { method: "DELETE" });
       toast.success("Tarea eliminada 🗑️");
-      load();
+      if (tasks.length === 1 && page > 1) setPage((p) => Math.max(1, p - 1));
+      else load();
     } catch {
       toast.error("No se pudo eliminar la tarea");
     }
@@ -152,7 +200,7 @@ export default function App() {
         <header className="mb-6 flex flex-wrap items-center gap-4 justify-between">
           <div className="flex items-center gap-3">
             <span className="text-3xl">🗒️</span>
-            <h1 className="text-2xl font-bold"> Tareas </h1>
+            <h1 className="text-2xl font-bold">Tareas</h1>
           </div>
 
           <div className="flex items-center gap-3">
@@ -197,6 +245,7 @@ export default function App() {
               + Añadir
             </button>
           </form>
+
           <input
             className="w-full sm:w-72 rounded-xl border px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-300"
             placeholder="Buscar…"
@@ -207,30 +256,29 @@ export default function App() {
 
         {/* Contenido */}
         {booting ? (
-          <div className="p-10 text-center text-gray-600 bg-white/80 rounded-2xl border">
-            Cargando tareas…
-          </div>
+          <Panel>Cargando tareas…</Panel>
         ) : loading ? (
-          <div className="p-10 text-center text-gray-600 bg-white/80 rounded-2xl border">
-            Cargando…
-          </div>
+          <Panel>Cargando…</Panel>
         ) : tasks.length === 0 ? (
-          <div className="p-10 text-center text-gray-600 bg-white/80 rounded-2xl border">
-            Sin tareas
-          </div>
+          <Panel>{q ? <>No hay resultados para <strong>{q}</strong></> : "Sin tareas"}</Panel>
         ) : (
-          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-            {tasks.map((t) => (
-              <TaskCard
-                key={t.id}
-                task={t}
-                canDelete={mine.has(t.id)}
-                onToggle={toggleTask}
-                onDelete={removeTask}
-                onSave={saveTitle}
-              />
-            ))}
-          </div>
+          <>
+            <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+              {tasks.map((t) => (
+                <TaskCard
+                  key={t.id}
+                  task={t}
+                  canDelete={mine.has(t.id)}   // o true si no usas permisos
+                  onToggle={toggleTask}
+                  onDelete={removeTask}
+                  onSave={saveTitle}
+                />
+              ))}
+            </div>
+
+            {/* Paginación — SIEMPRE visible (muestra 1, 2, 3 …) */}
+            <Pagination page={page} totalPages={totalPages} onChange={setPage} />
+          </>
         )}
       </div>
 
@@ -238,4 +286,63 @@ export default function App() {
       <ToastContainer position="top-right" theme="light" />
     </div>
   );
+}
+
+function Panel({ children }) {
+  return (
+    <div className="p-10 text-center text-gray-600 bg-white/80 rounded-2xl border">
+      {children}
+    </div>
+  );
+}
+
+/* ---------- Paginación ---------- */
+function Pagination({ page, totalPages, onChange }) {
+  // Si prefieres ocultarla cuando solo hay 1 página, descomenta:
+  // if (totalPages <= 1) return null;
+
+  const pages = getPageItems(page, totalPages);
+
+  return (
+    <nav className="mt-6 flex items-center justify-center gap-1">
+      <button
+        onClick={() => onChange(Math.max(1, page - 1))}
+        className="px-3 py-1 rounded-lg bg-gray-200 hover:bg-gray-300 text-gray-900 disabled:opacity-50"
+        disabled={page === 1}
+      >
+        ‹ Anterior
+      </button>
+
+      {pages.map((p, idx) =>
+        p === "…" ? (
+          <span key={`dots-${idx}`} className="px-2">…</span>
+        ) : (
+          <button
+            key={p}
+            onClick={() => onChange(p)}
+            className={`px-3 py-1 rounded-lg ${
+              p === page ? "bg-purple-300 font-bold" : "bg-gray-200 hover:bg-gray-300"
+            }`}
+          >
+            {p}
+          </button>
+        )
+      )}
+
+      <button
+        onClick={() => onChange(Math.min(totalPages, page + 1))}
+        className="px-3 py-1 rounded-lg bg-gray-200 hover:bg-gray-300 text-gray-900 disabled:opacity-50"
+        disabled={page === totalPages}
+      >
+        Siguiente ›
+      </button>
+    </nav>
+  );
+}
+
+function getPageItems(page, totalPages) {
+  if (totalPages <= 7) return Array.from({ length: totalPages }, (_, i) => i + 1);
+  if (page <= 4) return [1, 2, 3, 4, 5, "…", totalPages];
+  if (page >= totalPages - 3) return [1, "…", totalPages - 4, totalPages - 3, totalPages - 2, totalPages - 1, totalPages];
+  return [1, "…", page - 1, page, page + 1, "…", totalPages];
 }
