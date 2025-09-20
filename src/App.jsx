@@ -16,10 +16,9 @@ import {
 const BASE = "http://localhost:3001";
 const PAGE_SIZE = 9;
 
-// Paleta suave (gradientes coherentes)
 const THEMES = {
   purple: { bg: "linear-gradient(135deg,#F7F2FF 0%,#EBDDFE 45%,#EAF4FF 100%)" },
-  pink:   { bg: "linear-gradient(135deg,#FFF5FA 0%,#FDE8F3 45%,#F6ECFF 100%)" },
+  pink:   { bg: "linear-gradient(135deg,#FFE9F2 0%,#FBCDE6 45%,#EBC8F9 100%)" },
 };
 
 function norm(s = "") {
@@ -178,16 +177,15 @@ export default function App() {
   return (
     <div className="min-h-screen">
       <div className="mx-auto max-w-6xl p-6">
-        {/* Header compacto */}
+        {/* Header */}
         <motion.header
           initial={{ opacity: 0, y: -6 }}
           animate={{ opacity: 1, y: 0 }}
           className="mb-4 rounded-xl bg-white/80 backdrop-blur ring-1 ring-black/5 px-3 py-2 shadow-sm"
         >
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-            {/* Izquierda: icono + título + stats (desktop) */}
+            {/* Izquierda */}
             <div className="flex items-center gap-3">
-              {/* LOGO con el mismo gradiente que “Añadir”, un tris más claro */}
               <div className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-violet-500 to-fuchsia-500 text-white shadow ring-1 ring-white/10">
                 <SparklesIcon className="h-4 w-4 opacity-95" />
               </div>
@@ -203,7 +201,7 @@ export default function App() {
               </div>
             </div>
 
-            {/* Derecha: controles */}
+            {/* Derecha */}
             <div className="flex items-center gap-2">
               <button
                 onClick={() => setTheme((t) => (t === "purple" ? "pink" : "purple"))}
@@ -225,7 +223,7 @@ export default function App() {
               </button>
             </div>
 
-            {/* Stats en mobile */}
+            {/* Stats mobile */}
             <div className="sm:hidden flex items-center gap-2">
               <div className="rounded-lg bg-violet-200 px-2.5 py-1 text-xs text-violet-900">
                 Pendientes: <strong>{stats.pending}</strong>
@@ -244,6 +242,7 @@ export default function App() {
               <MagnifyingGlassIcon className="h-5 w-5" />
             </span>
             <input
+              aria-label="search-input"
               className="w-full rounded-xl border bg-white/80 pl-10 pr-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-300"
               placeholder="Buscar…"
               value={q}
@@ -253,13 +252,14 @@ export default function App() {
 
           <form onSubmit={addTask} className="flex flex-1 gap-2">
             <input
+              aria-label="add-task-input"
               className="flex-1 rounded-xl border px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-300"
               placeholder="Nueva tarea…"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
             />
-            {/* Botón “Añadir” con el MISMO gradiente que el logo */}
             <motion.button
+              aria-label="add-task-submit"
               type="submit"
               whileTap={{ scale: 0.96 }}
               className="inline-flex items-center gap-2 rounded-xl px-4 py-2 font-medium shadow-sm bg-gradient-to-r from-violet-500 to-fuchsia-500 text-white hover:brightness-105"
@@ -291,7 +291,7 @@ export default function App() {
                   >
                     <TaskCard
                       task={t}
-                      canDelete={mine.has(t.id)} // editar cualquiera; borrar solo propias
+                      canDelete={mine.has(t.id)}
                       onToggle={toggleTask}
                       onDelete={removeTask}
                       onSave={saveTitle}
@@ -342,7 +342,6 @@ function EmptyState({ query }) {
   );
 }
 
-/* ---------- Paginación ---------- */
 function Pagination({ page, totalPages, onChange }) {
   const pages = getPageItems(page, totalPages);
   return (

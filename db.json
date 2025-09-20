@@ -44,11 +44,11 @@
     {
       "id": "4179",
       "title": "ir al SENA",
-      "completed": false,
+      "completed": true,
       "authorId": "1",
       "authorName": "Daniela",
-      "editedBy": null,
-      "updatedAt": "2025-09-16T21:00:38.900Z"
+      "editedBy": "Taliana",
+      "updatedAt": "2025-09-20T12:34:00.810Z"
     },
     {
       "id": "fae0",
@@ -119,20 +119,20 @@
     {
       "id": "03b6",
       "title": "ffgrfrfhrz",
-      "completed": false,
+      "completed": true,
       "authorId": "1",
       "authorName": "Daniela",
-      "editedBy": null,
-      "updatedAt": "2025-09-18T14:20:51.837Z"
+      "editedBy": "Taliana",
+      "updatedAt": "2025-09-20T12:29:26.346Z"
     },
     {
       "id": "993b",
-      "title": "frffrfrhft",
+      "title": "frffrfrhfttyt",
       "completed": false,
       "authorId": "1",
       "authorName": "Daniela",
       "editedBy": "Taliana",
-      "updatedAt": "2025-09-18T14:57:40.705Z"
+      "updatedAt": "2025-09-20T12:29:29.177Z"
     },
     {
       "id": "bf08",
@@ -149,7 +149,46 @@
       "completed": false,
       "authorId": "1",
       "authorName": "Daniela",
+      "editedBy": "Daniela",
+      "updatedAt": "2025-09-20T11:35:15.281Z"
+    },
+    {
+      "id": "71b0",
+      "title": "hacer test",
+      "completed": false,
+      "authorId": "1",
+      "authorName": "Daniela",
       "editedBy": null,
+      "updatedAt": "2025-09-20T11:35:56.474Z"
+    },
+    {
+      "id": "f54c",
+      "title": "y test en el proyecto",
+      "completed": false,
+      "authorId": "2",
+      "authorName": "Taliana",
+      "editedBy": null,
+      "updatedAt": "2025-09-20T11:39:48.250Z"
+    },
+    {
+      "id": "44b6",
+      "title": "jdheiuh",
+      "completed": false,
+      "authorId": "2",
+      "authorName": "Taliana",
+      "editedBy": null,
+
+      "updatedAt": "2025-09-20T12:29:24.195Z"
+    },
+    {
+      "id": "3162",
+      "title": "hacer testingg",
+      "completed": false,
+      "authorId": "2",
+      "authorName": "Taliana",
+      "editedBy": "Taliana",
+      "updatedAt": "2025-09-20T12:50:52.082Z"
+=======
       "updatedAt": "2025-09-20T05:03:29.710Z"
 
     },
@@ -162,6 +201,7 @@
       "editedBy": null,
       "updatedAt": "2025-09-20T11:52:21.300Z"
 =======
+
 
     }
   ]

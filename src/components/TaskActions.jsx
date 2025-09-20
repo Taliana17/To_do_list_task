@@ -1,4 +1,3 @@
-// src/components/TaskActions.jsx
 import { motion } from "framer-motion";
 import {
   PencilSquareIcon,
@@ -30,6 +29,7 @@ export default function TaskActions({
     <div className={`mt-1 flex items-center gap-2 ${wrap}`}>
       {/* Completar / Desmarcar */}
       <motion.button
+        aria-label="task-toggle"
         type="button"
         whileTap={tap}
         onClick={() => onToggle(task)}
@@ -44,9 +44,10 @@ export default function TaskActions({
         {task.completed ? "Desmarcar" : "Completar"}
       </motion.button>
 
-      {/* Editar (siempre disponible) */}
+      {/* Editar */}
       {!editing ? (
         <motion.button
+          aria-label="task-edit"
           type="button"
           whileTap={tap}
           onClick={() => setEditing(true)}
@@ -59,6 +60,7 @@ export default function TaskActions({
       ) : (
         <>
           <motion.button
+            aria-label="task-save"
             type="button"
             whileTap={tap}
             onClick={onSubmitEdit}
@@ -69,6 +71,7 @@ export default function TaskActions({
           </motion.button>
 
           <motion.button
+            aria-label="task-cancel"
             type="button"
             whileTap={tap}
             onClick={onCancelEdit}
@@ -81,9 +84,10 @@ export default function TaskActions({
         </>
       )}
 
-      {/* Eliminar: solo si puedes borrar; baja en edición */}
+      {/* Eliminar */}
       {canDelete && (
         <motion.button
+          aria-label="task-delete"
           type="button"
           whileTap={tap}
           onClick={() => onDelete(task.id)}
