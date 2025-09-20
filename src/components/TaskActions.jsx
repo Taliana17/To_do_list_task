@@ -1,69 +1,98 @@
-import { CheckCircle2, Circle, Pencil, Trash2 } from "lucide-react";
+// src/components/TaskActions.jsx
+import { motion } from "framer-motion";
+import {
+  PencilSquareIcon,
+  TrashIcon,
+  CheckCircleIcon,
+  XMarkIcon,
+} from "@heroicons/react/24/outline";
 
 export default function TaskActions({
   task,
-  canDelete,
+  canDelete,          // true si es tu tarea
   editing,
   setEditing,
-  onToggle,
+  onToggle,           // recibe el objeto task
   onDelete,
   onSubmitEdit,
   onCancelEdit,
 }) {
+  const tap = { scale: 0.95 };
+
+  // Cuando NO estoy editando y NO puedo eliminar, quiero que los 2 botones ocupen toda la fila.
+  const wideIdle = !editing && !canDelete;
+  const wrap = editing && canDelete ? "flex-wrap" : "flex-nowrap";
+  const commonBtn =
+    "inline-flex items-center gap-2 rounded-xl px-3 py-1.5 text-sm font-medium shadow-sm transition";
+  const stretch = wideIdle ? "flex-1 basis-0 justify-center" : "";
+
   return (
-    <div className="mt-1 flex flex-wrap items-center gap-2">
-      <button
+    <div className={`mt-1 flex items-center gap-2 ${wrap}`}>
+      {/* Completar / Desmarcar */}
+      <motion.button
         type="button"
+        whileTap={tap}
         onClick={() => onToggle(task)}
-        className={`inline-flex items-center gap-2 rounded-xl px-3 py-1.5 text-sm font-medium shadow-sm transition
-          ${task.completed
+        className={`${commonBtn} ${stretch} ${
+          task.completed
             ? "bg-yellow-200 hover:bg-yellow-300 text-yellow-900"
-            : "bg-blue-200 hover:bg-blue-300 text-blue-900"}`}
+            : "bg-blue-200 hover:bg-blue-300 text-blue-900"
+        }`}
         title={task.completed ? "Desmarcar" : "Completar"}
       >
-        {task.completed ? <CheckCircle2 size={16} /> : <Circle size={16} />}
+        <CheckCircleIcon className="w-5 h-5" />
         {task.completed ? "Desmarcar" : "Completar"}
-      </button>
+      </motion.button>
 
+      {/* Editar (siempre disponible) */}
       {!editing ? (
-        <button
+        <motion.button
           type="button"
+          whileTap={tap}
           onClick={() => setEditing(true)}
-          className="inline-flex items-center gap-2 rounded-xl px-3 py-1.5 text-sm font-medium shadow-sm bg-purple-200 hover:bg-purple-300 text-purple-900 transition"
+          className={`${commonBtn} ${stretch} bg-purple-200 hover:bg-purple-300 text-purple-900`}
           title="Editar"
         >
-          <Pencil size={16} /> Editar
-        </button>
+          <PencilSquareIcon className="w-5 h-5" />
+          Editar
+        </motion.button>
       ) : (
         <>
-          <button
+          <motion.button
             type="button"
+            whileTap={tap}
             onClick={onSubmitEdit}
-            className="rounded-xl px-3 py-1.5 text-sm font-medium shadow-sm bg-green-200 hover:bg-green-300 text-green-900 transition"
+            className={`${commonBtn} bg-green-200 hover:bg-green-300 text-green-900`}
             title="Guardar cambios"
           >
             Guardar
-          </button>
-          <button
+          </motion.button>
+
+          <motion.button
             type="button"
+            whileTap={tap}
             onClick={onCancelEdit}
-            className="rounded-xl px-3 py-1.5 text-sm font-medium shadow-sm bg-gray-200 hover:bg-gray-300 text-gray-900 transition"
+            className={`${commonBtn} bg-gray-200 hover:bg-gray-300 text-gray-900`}
             title="Cancelar edición"
           >
+            <XMarkIcon className="w-5 h-5" />
             Cancelar
-          </button>
+          </motion.button>
         </>
       )}
 
+      {/* Eliminar: solo si puedes borrar; baja en edición */}
       {canDelete && (
-        <button
+        <motion.button
           type="button"
+          whileTap={tap}
           onClick={() => onDelete(task.id)}
-          className="ml-auto inline-flex items-center gap-2 rounded-xl px-3 py-1.5 text-sm font-medium shadow-sm bg-pink-200 hover:bg-pink-300 text-pink-900 transition"
+          className={`${editing ? "basis-full" : "ml-auto"} ${commonBtn} bg-pink-200 hover:bg-pink-300 text-pink-900`}
           title="Eliminar"
         >
-          <Trash2 size={16} /> Eliminar
-        </button>
+          <TrashIcon className="w-5 h-5" />
+          Eliminar
+        </motion.button>
       )}
     </div>
   );
