@@ -124,7 +124,7 @@ GET    /users?username=:u&password=:p
 Este proyecto está bajo la licencia [MIT](./LICENCE.md).  
 
 
-=======
+
 
 ## 🎨 Estilos
 - Tailwind v4 (import directo en `index.css`).
