@@ -98,28 +98,32 @@ GET    /users?username=:u&password=:p
 - Control de permisos de borrado: solo el autor puede eliminar.
 ## 👩‍💻 Colaboradores
 
-- **Taliana Moreno Guzmán**  
+- **[Taliana Moreno Guzmán](https://github.com/Taliana17)**  
   - Rol: Desarrolladora Backend  
   - Responsabilidades:  
     - Creación y configuración del servidor con **JSON Server**  
     - Definición y manejo de la base de datos `db.json`  
-    - Endpoints CRUD para tareas (crear, leer, actualizar, eliminar)  
+    - Endpoints CRUD para tareas  
     - Asegurar la persistencia de datos en el proyecto  
-  - Tecnologías: JSON Server, Node.js  
 
 ---
 
-- **Heidy Daniela Romero Aguiar**  
+- **[Heidy Daniela Romero Aguiar](https://github.com/Dani-02R)**  
   - Rol: Desarrolladora Frontend  
   - Responsabilidades:  
-    - Construcción de la interfaz de usuario en **React**  
+    - Construcción de la interfaz en **React**  
     - Integración del frontend con el backend simulado  
     - Implementación de componentes interactivos y dinámicos  
-    - Estilización de la interfaz con **TailwindCSS** y animaciones con **Framer Motion**  
+    - Estilos con **TailwindCSS** y animaciones con **Framer Motion**  
     - Manejo de notificaciones con **React-Toastify**  
-  - Tecnologías: React, TailwindCSS, Framer Motion, React-Toastify  
 
 ---
+
+## 📄 Licencia
+
+Este proyecto está bajo la licencia [MIT](./LICENCE.md).  
+
+
 =======
 
 ## 🎨 Estilos

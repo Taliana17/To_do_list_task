@@ -69,7 +69,6 @@
       "updatedAt": "2025-09-20T12:20:55.487Z"
     },
     {
-
       "id": "cb03",
       "title": "hybjnjh",
       "completed": false,
@@ -88,8 +87,6 @@
       "updatedAt": "2025-09-20T12:20:55.487Z"
     },
     {
-
-
       "id": "db49",
       "title": "sjkbnjsbshd",
       "completed": false,
@@ -173,35 +170,29 @@
     {
       "id": "44b6",
       "title": "jdheiuh",
-      "completed": false,
+      "completed": true,
       "authorId": "2",
       "authorName": "Taliana",
-      "editedBy": null,
-
-      "updatedAt": "2025-09-20T12:29:24.195Z"
+      "editedBy": "Daniela",
+      "updatedAt": "2025-09-20T15:07:38.026Z"
     },
     {
       "id": "3162",
       "title": "hacer testingg",
-      "completed": false,
+      "completed": true,
       "authorId": "2",
       "authorName": "Taliana",
-      "editedBy": "Taliana",
-      "updatedAt": "2025-09-20T12:50:52.082Z"
-
-
+      "editedBy": "Daniela",
+      "updatedAt": "2025-09-20T15:07:35.618Z"
     },
     {
       "id": "41e7",
       "title": "nn",
-      "completed": false,
+      "completed": true,
       "authorId": "1",
       "authorName": "Daniela",
-      "editedBy": null,
-      "updatedAt": "2025-09-20T11:52:21.300Z"
-
-
-
+      "editedBy": "Daniela",
+      "updatedAt": "2025-09-20T15:07:39.361Z"
     }
   ]
 }
