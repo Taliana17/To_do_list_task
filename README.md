@@ -120,6 +120,7 @@ GET    /users?username=:u&password=:p
   - Tecnologías: React, TailwindCSS, Framer Motion, React-Toastify  
 
 ---
+=======
 
 ## 🎨 Estilos
 - Tailwind v4 (import directo en `index.css`).
