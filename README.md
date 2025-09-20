@@ -96,6 +96,31 @@ GET    /users?username=:u&password=:p
 - Notificaciones (React-Toastify).
 - Selector de **tema de fondo** (gradiente) persistido (`localStorage`).
 - Control de permisos de borrado: solo el autor puede eliminar.
+## 👩‍💻 Colaboradores
+
+- **Taliana Moreno Guzmán**  
+  - Rol: Desarrolladora Backend  
+  - Responsabilidades:  
+    - Creación y configuración del servidor con **JSON Server**  
+    - Definición y manejo de la base de datos `db.json`  
+    - Endpoints CRUD para tareas (crear, leer, actualizar, eliminar)  
+    - Asegurar la persistencia de datos en el proyecto  
+  - Tecnologías: JSON Server, Node.js  
+
+---
+
+- **Heidy Daniela Romero Aguiar**  
+  - Rol: Desarrolladora Frontend  
+  - Responsabilidades:  
+    - Construcción de la interfaz de usuario en **React**  
+    - Integración del frontend con el backend simulado  
+    - Implementación de componentes interactivos y dinámicos  
+    - Estilización de la interfaz con **TailwindCSS** y animaciones con **Framer Motion**  
+    - Manejo de notificaciones con **React-Toastify**  
+  - Tecnologías: React, TailwindCSS, Framer Motion, React-Toastify  
+
+---
+=======
 
 ## 🎨 Estilos
 - Tailwind v4 (import directo en `index.css`).
