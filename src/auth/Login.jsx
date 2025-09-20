@@ -88,6 +88,7 @@ export default function Login({ onSuccess }) {
               <UserIcon className="h-5 w-5" />
             </span>
             <input
+              aria-label="username-input"
               className="w-full rounded-2xl border border-gray-300 bg-white/80 px-10 py-3 outline-none transition focus:border-purple-400 focus:ring-4 focus:ring-purple-300/30"
               placeholder="Usuario"
               value={form.username}
@@ -102,6 +103,7 @@ export default function Login({ onSuccess }) {
               <LockClosedIcon className="h-5 w-5" />
             </span>
             <input
+              aria-label="password-input"
               type={show ? "text" : "password"}
               className="w-full rounded-2xl border border-gray-300 bg-white/80 px-10 py-3 pr-12 outline-none transition focus:border-fuchsia-400 focus:ring-4 focus:ring-fuchsia-300/30"
               placeholder="Contraseña"
@@ -121,6 +123,7 @@ export default function Login({ onSuccess }) {
 
           {/* Botón */}
           <motion.button
+            aria-label="login-submit"
             type="submit"
             whileTap={{ scale: 0.98 }}
             disabled={loading}
