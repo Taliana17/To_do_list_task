@@ -1,6 +1,7 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { useEffect, useMemo, useState } from "react";
-import Login from "./auth/Login";
+import { useAuth } from "./context/auth";
+import { Navigate } from "react-router-dom";
 import TaskCard from "./components/TaskCard";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -26,9 +27,7 @@ function norm(s = "") {
 }
 
 export default function App() {
-  const [user, setUser] = useState(() => {
-    try { return JSON.parse(localStorage.getItem("user") || "null"); } catch { return null; }
-  });
+  const { user, logout } = useAuth();
 
   const [theme, setTheme] = useState(() => localStorage.getItem("bgTheme") || "purple");
   useEffect(() => {
@@ -41,7 +40,6 @@ export default function App() {
   const [title, setTitle] = useState("");
   const [q, setQ] = useState("");
   const [loading, setLoading] = useState(false);
-  const [booting, setBooting] = useState(false);
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
   const [stats, setStats] = useState({ pending: 0, done: 0 });
@@ -90,22 +88,8 @@ export default function App() {
     // eslint-disable-next-line
   }, [q, user]);
 
-  if (!user) {
-    return (
-      <>
-        <Login
-          onSuccess={async (u) => {
-            setBooting(true);
-            setUser(u);
-            try { await load(); } finally { setBooting(false); }
-          }}
-        />
-        <ToastContainer position="top-right" theme="light" />
-      </>
-    );
-  }
+  if (!user) return <Navigate to="/login" replace />;
 
-  // CRUD
   async function addTask(e) {
     e.preventDefault();
     const t = title.trim(); if (!t) return;
@@ -135,7 +119,7 @@ export default function App() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           completed: !task.completed,
-          editedBy: user.name,
+          editedBy: user?.name,
           updatedAt: new Date().toISOString(),
         }),
       });
@@ -151,7 +135,7 @@ export default function App() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           title: newTitle,
-          editedBy: user.name,
+          editedBy: user?.name,
           updatedAt: new Date().toISOString(),
         }),
       });
@@ -168,23 +152,15 @@ export default function App() {
     } catch { toast.error("No se pudo eliminar la tarea"); }
   }
 
-  function logout() {
-    localStorage.removeItem("user");
-    setUser(null);
-  }
-
-  // UI
   return (
     <div className="min-h-screen">
       <div className="mx-auto max-w-6xl p-6">
-        {/* Header */}
         <motion.header
           initial={{ opacity: 0, y: -6 }}
           animate={{ opacity: 1, y: 0 }}
           className="mb-4 rounded-xl bg-white/80 backdrop-blur ring-1 ring-black/5 px-3 py-2 shadow-sm"
         >
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-            {/* Izquierda */}
             <div className="flex items-center gap-3">
               <div className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-violet-500 to-fuchsia-500 text-white shadow ring-1 ring-white/10">
                 <SparklesIcon className="h-4 w-4 opacity-95" />
@@ -201,7 +177,6 @@ export default function App() {
               </div>
             </div>
 
-            {/* Derecha */}
             <div className="flex items-center gap-2">
               <button
                 onClick={() => setTheme((t) => (t === "purple" ? "pink" : "purple"))}
@@ -212,7 +187,7 @@ export default function App() {
                   ? <SunIcon className="h-4 w-4 text-indigo-700" />
                   : <MoonIcon className="h-4 w-4 text-fuchsia-700" />}
               </button>
-              <span className="text-sm text-gray-700">Hola, {user.name}</span>
+              <span className="text-sm text-gray-700">Hola, {user?.name}</span>
               <button
                 onClick={logout}
                 className="inline-flex items-center gap-1 rounded-lg bg-white/70 px-2.5 py-1 ring-1 ring-black/10 shadow hover:bg-white"
@@ -223,7 +198,6 @@ export default function App() {
               </button>
             </div>
 
-            {/* Stats mobile */}
             <div className="sm:hidden flex items-center gap-2">
               <div className="rounded-lg bg-violet-200 px-2.5 py-1 text-xs text-violet-900">
                 Pendientes: <strong>{stats.pending}</strong>
@@ -235,7 +209,6 @@ export default function App() {
           </div>
         </motion.header>
 
-        {/* Buscar + Crear */}
         <div className="mb-4 flex flex-col sm:flex-row gap-2">
           <div className="relative flex-1">
             <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
@@ -269,10 +242,7 @@ export default function App() {
           </form>
         </div>
 
-        {/* Contenido */}
-        {booting ? (
-          <Panel>Cargando tareas…</Panel>
-        ) : loading ? (
+        {loading ? (
           <SkeletonGrid />
         ) : tasks.length === 0 ? (
           <EmptyState query={q} />
@@ -309,10 +279,6 @@ export default function App() {
       <ToastContainer position="top-right" theme="light" />
     </div>
   );
-}
-
-function Panel({ children }) {
-  return <div className="p-10 text-center text-gray-600 bg-white/80 rounded-2xl border">{children}</div>;
 }
 
 function SkeletonGrid() {

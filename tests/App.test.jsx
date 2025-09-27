@@ -1,11 +1,10 @@
-// tests/App.test.jsx
-import { describe, test, expect, beforeEach, afterEach, vi } from "vitest";
+import { describe, test, expect, vi } from "vitest";
 import {
-  render,
   screen,
   fireEvent,
   waitForElementToBeRemoved,
 } from "@testing-library/react";
+import { renderWithProviders } from "./test-utils";
 import App from "../src/App";
 
 const BASE = "http://localhost:3001";
@@ -35,15 +34,8 @@ function chainFetch(steps) {
 }
 
 describe("App (CRUD tareas)", () => {
-  beforeEach(() => {
-    localStorage.clear();
-  });
-
-  afterEach(() => {
-    vi.restoreAllMocks();
-  });
-
   test("agregar tarea: POST y aparece en la lista", async () => {
+    // prepara sesión
     localStorage.setItem(
       "user",
       JSON.stringify({ id: "u1", username: "dani", name: "Daniela" })
@@ -59,9 +51,7 @@ describe("App (CRUD tareas)", () => {
     };
 
     chainFetch([
-      // GET inicial vacío
-      { url: `${BASE}/tasks`, method: "GET", body: [] },
-      // POST crear
+      { url: `${BASE}/tasks`, method: "GET", body: [] }, // GET inicial
       {
         url: `${BASE}/tasks`,
         method: "POST",
@@ -71,11 +61,10 @@ describe("App (CRUD tareas)", () => {
           return nueva;
         },
       },
-      // GET actualizado con la nueva
-      { url: `${BASE}/tasks`, method: "GET", body: [nueva] },
+      { url: `${BASE}/tasks`, method: "GET", body: [nueva] }, // GET tras crear
     ]);
 
-    render(<App />);
+    renderWithProviders(<App />, { initialEntries: ["/app"] });
 
     const input = await screen.findByLabelText(/add-task-input/i);
     fireEvent.change(input, { target: { value: "Primera tarea" } });
@@ -100,15 +89,12 @@ describe("App (CRUD tareas)", () => {
     };
 
     chainFetch([
-      // GET inicial con 1 tarea
-      { url: `${BASE}/tasks`, method: "GET", body: [tarea] },
-      // DELETE
-      { url: `${BASE}/tasks/t1`, method: "DELETE", body: {} },
-      // GET actualizado vacío
-      { url: `${BASE}/tasks`, method: "GET", body: [] },
+      { url: `${BASE}/tasks`, method: "GET", body: [tarea] }, // GET inicial
+      { url: `${BASE}/tasks/t1`, method: "DELETE", body: {} }, // DELETE
+      { url: `${BASE}/tasks`, method: "GET", body: [] }, // GET vacío
     ]);
 
-    render(<App />);
+    renderWithProviders(<App />, { initialEntries: ["/app"] });
 
     expect(await screen.findByText(/borrar esta/i)).toBeInTheDocument();
     fireEvent.click(screen.getByLabelText(/task-delete/i));
@@ -144,9 +130,7 @@ describe("App (CRUD tareas)", () => {
     };
 
     chainFetch([
-      // GET inicial
       { url: `${BASE}/tasks`, method: "GET", body: initialTasks },
-      // PATCH (validamos payload)
       {
         url: `${BASE}/tasks/t1`,
         method: "PATCH",
@@ -156,26 +140,19 @@ describe("App (CRUD tareas)", () => {
           return updated;
         },
       },
-      // GET actualizado con el nuevo título
       { url: `${BASE}/tasks`, method: "GET", body: [updated] },
     ]);
 
-    render(<App />);
+    renderWithProviders(<App />, { initialEntries: ["/app"] });
 
-    // Ver el título viejo y entrar a edición
     expect(await screen.findByText(/titulo viejo/i)).toBeInTheDocument();
     fireEvent.click(screen.getByLabelText(/task-edit/i));
 
-    // Cambiar el input y guardar
     const input = screen.getByDisplayValue(/titulo viejo/i);
     fireEvent.change(input, { target: { value: "Titulo nuevo" } });
     fireEvent.click(screen.getByLabelText(/task-save/i));
 
-    // ✅ Espera al nuevo texto (evita falsos negativos por timing)
     expect(await screen.findByText(/titulo nuevo/i)).toBeInTheDocument();
-
-    // (Opcional) Asegura que el viejo ya no está
-    // expect(screen.queryByText(/titulo viejo/i)).not.toBeInTheDocument();
   });
 
   test("buscar filtra tareas por título", async () => {
@@ -185,47 +162,26 @@ describe("App (CRUD tareas)", () => {
     );
 
     const tareas = [
-      {
-        id: "t1",
-        title: "Comprar pan",
-        completed: false,
-        authorId: "u1",
-        authorName: "Daniela",
-      },
-      {
-        id: "t2",
-        title: "Estudiar React",
-        completed: false,
-        authorId: "u1",
-        authorName: "Daniela",
-      },
+      { id: "t1", title: "Comprar pan", completed: false, authorId: "u1", authorName: "Daniela" },
+      { id: "t2", title: "Estudiar React", completed: false, authorId: "u1", authorName: "Daniela" },
     ];
 
     chainFetch([
-      // GET inicial (ambas)
-      { url: `${BASE}/tasks`, method: "GET", body: tareas },
-      // GET tras escribir en el buscador (filtrado)
-      { url: `${BASE}/tasks`, method: "GET", body: [tareas[1]] },
+      { url: `${BASE}/tasks`, method: "GET", body: tareas },        // GET inicial
+      { url: `${BASE}/tasks`, method: "GET", body: [tareas[1]] },   // GET tras buscar
     ]);
 
-    render(<App />);
+    renderWithProviders(<App />, { initialEntries: ["/app"] });
 
-    // Al inicio, se ven ambas
     expect(await screen.findByText(/comprar pan/i)).toBeInTheDocument();
     expect(await screen.findByText(/estudiar react/i)).toBeInTheDocument();
 
-    // Escribimos "react" (dispara debounce + refetch)
     fireEvent.change(screen.getByLabelText(/search-input/i), {
       target: { value: "react" },
     });
 
-    // Espera a que "Comprar pan" desaparezca tras el refetch
-    await waitForElementToBeRemoved(
-      () => screen.queryByText(/comprar pan/i),
-      { timeout: 2000 }
-    );
+    await waitForElementToBeRemoved(() => screen.queryByText(/comprar pan/i), { timeout: 2000 });
 
-    // Queda solo "Estudiar React"
     expect(await screen.findByText(/estudiar react/i)).toBeInTheDocument();
   });
 });

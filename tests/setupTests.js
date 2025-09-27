@@ -1,7 +1,8 @@
-import '@testing-library/jest-dom'
+import "@testing-library/jest-dom";
 
-// Limpieza básica entre tests
-beforeEach(() => {
-  localStorage.clear()
-  vi.restoreAllMocks()
-})
+// Limpia mocks y storage entre tests
+import { afterEach, vi } from "vitest";
+afterEach(() => {
+  vi.restoreAllMocks();
+  localStorage.clear();
+});

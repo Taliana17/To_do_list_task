@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import {
   UserIcon,
@@ -9,13 +9,21 @@ import {
   SparklesIcon,
 } from "@heroicons/react/24/outline";
 import { toast } from "react-toastify";
+import { useAuth } from "../context/auth";
+import { useNavigate } from "react-router-dom";
 
 const BASE = "http://localhost:3001"; // json-server
 
-export default function Login({ onSuccess }) {
+export default function Login() {
   const [form, setForm] = useState({ username: "", password: "" });
   const [show, setShow] = useState(false);
   const [loading, setLoading] = useState(false);
+  const { user, login } = useAuth();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (user) navigate("/app", { replace: true });
+  }, [user, navigate]);
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -31,8 +39,8 @@ export default function Login({ onSuccess }) {
       const users = await res.json();
       if (Array.isArray(users) && users.length) {
         const user = users[0];
-        localStorage.setItem("user", JSON.stringify(user));
-        onSuccess(user);
+        login(user);
+        navigate("/app", { replace: true });
         toast.success(`Bienvenido, ${user.name}`);
       } else {
         toast.error("Usuario o contraseña incorrectos");
@@ -46,23 +54,21 @@ export default function Login({ onSuccess }) {
 
   return (
     <div className="min-h-screen relative flex items-center justify-center px-4">
-      {/* Fondo animado con blobs suaves */}
       <motion.div aria-hidden className="pointer-events-none absolute inset-0 -z-10 overflow-hidden">
         <motion.div
-          style={{ background: "rgba(138, 92, 246, 0.22)" }} // violet-500 @ 18%
+          style={{ background: "rgba(138, 92, 246, 0.22)" }}
           className="absolute -left-24 top-10 h-80 w-80 rounded-full blur-3xl"
           animate={{ x: [-40, 30, -40], y: [0, -25, 0] }}
           transition={{ duration: 12, repeat: Infinity, ease: "easeInOut" }}
         />
         <motion.div
-          style={{ background: "rgba(240, 127, 183, 0.17)" }} // pink-500 @ 16%
+          style={{ background: "rgba(240, 127, 183, 0.17)" }}
           className="absolute right-0 bottom-10 h-96 w-96 rounded-full blur-3xl"
           animate={{ x: [30, -15, 30], y: [20, -10, 20] }}
           transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
         />
       </motion.div>
 
-      {/* Card glass con glow sutil */}
       <motion.div
         initial={{ opacity: 0, y: 10, scale: 0.98 }}
         animate={{ opacity: 1, y: 0, scale: 1 }}
@@ -82,7 +88,6 @@ export default function Login({ onSuccess }) {
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          {/* Usuario */}
           <div className="relative">
             <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
               <UserIcon className="h-5 w-5" />
@@ -97,7 +102,6 @@ export default function Login({ onSuccess }) {
             />
           </div>
 
-          {/* Contraseña */}
           <div className="relative">
             <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
               <LockClosedIcon className="h-5 w-5" />
@@ -121,7 +125,6 @@ export default function Login({ onSuccess }) {
             </button>
           </div>
 
-          {/* Botón */}
           <motion.button
             aria-label="login-submit"
             type="submit"
